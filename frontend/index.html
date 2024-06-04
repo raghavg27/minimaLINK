@@ -13,6 +13,12 @@
         <button id="shortenButton">Shorten URL</button>
         <div class="result" id="result"></div>
     </div>
-    <script src="script.js"></script>
+    <script>
+    window.ENV = {
+      API_URL: 'http://localhost', // Ensure this matches your environment
+      PORT: '3001'
+    };
+  </script>
+  <script src="script.js"></script>
 </body>
 </html>

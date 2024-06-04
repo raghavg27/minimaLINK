@@ -43,6 +43,8 @@ function generateUniqueId() {
   return currentTime * 10000 + randomNum;
 }
 
+
+
 // Endpoint to shorten URL
 app.post('/api/v1/data/shorten', async (req, res) => {
   const { longUrl } = req.body;
@@ -79,6 +81,8 @@ app.post('/api/v1/data/shorten', async (req, res) => {
   }
 });
 
+
+
 // Endpoint to redirect to the original URL
 app.get('/:shortUrl', async (req, res) => {
   const { shortUrl } = req.params;
@@ -101,6 +105,8 @@ app.get('/:shortUrl', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
+
+
 
 app.listen(port, () => {
   console.log(`minimaLINK listening at ${url}`);

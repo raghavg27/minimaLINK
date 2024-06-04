@@ -11,6 +11,9 @@ const port = process.env.PORT || 3001;
 app.use(express.json());
 app.use(cors());  // Enable CORS for all routes
 
+//url 
+const url = process.env.API_URL + ":" + process.env.PORT
+
 // PostgreSQL client setup
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -56,7 +59,7 @@ app.post('/api/v1/data/shorten', async (req, res) => {
     if (result.rows.length > 0) {
       const { short_url } = result.rows[0];
       client.release();
-      return res.json({ shortUrl: `http://localhost:3001/${short_url}`, type: 'existing' });
+      return res.json({ shortUrl: `${url}/${short_url}`, type: 'existing' });
     }
 
     // Generate new unique ID and short URL
@@ -68,7 +71,7 @@ app.post('/api/v1/data/shorten', async (req, res) => {
 
     client.release();
 
-    res.json({ shortUrl: `http://localhost:3001/${shortUrl}`, type: 'new' });
+    res.json({ shortUrl: `${url}/${shortUrl}`, type: 'new' });
 
   } catch (err) {
     console.error(err);
@@ -100,5 +103,5 @@ app.get('/:shortUrl', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`minimaLINK listening at http://localhost:${port}`);
+  console.log(`minimaLINK listening at ${url}`);
 });

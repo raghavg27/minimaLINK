@@ -2,7 +2,8 @@
 
 const express = require('express');
 const { Pool } = require('pg');
-const cors = require('cors');  // Import the cors package
+const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -12,11 +13,11 @@ app.use(cors());  // Enable CORS for all routes
 
 // PostgreSQL client setup
 const pool = new Pool({
-  user: 'raghavgupta',
-  host: 'localhost',
-  database: 'raghavgupta',
-  password: 'rg123',
-  port: 5430,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
 });
 
 // Base62 characters

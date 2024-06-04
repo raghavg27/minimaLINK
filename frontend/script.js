@@ -4,6 +4,7 @@ document.getElementById('shortenButton').addEventListener('click', async () => {
         alert('Please enter a URL');
         return;
     }
+    // making API Call to shorten URL
     const response = await fetch('http://localhost:3001/api/v1/data/shorten', {
         method: 'POST',
         headers: {

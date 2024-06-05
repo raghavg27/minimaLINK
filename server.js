@@ -43,8 +43,6 @@ function generateUniqueId() {
   return currentTime * 10000 + randomNum;
 }
 
-
-
 // Endpoint to shorten URL
 app.post('/api/v1/data/shorten', async (req, res) => {
   const { longUrl } = req.body;
@@ -53,14 +51,14 @@ app.post('/api/v1/data/shorten', async (req, res) => {
     return res.status(400).send('longUrl is required');
   }
 
+  let client;
   try {
-    const client = await pool.connect();
+    client = await pool.connect();
 
     // Check if the long URL already exists
     const result = await client.query('SELECT short_url FROM urls WHERE long_url = $1', [longUrl]);
     if (result.rows.length > 0) {
       const { short_url } = result.rows[0];
-      client.release();
       return res.json({ shortUrl: `${url}/${short_url}`, type: 'existing' });
     }
 
@@ -71,42 +69,43 @@ app.post('/api/v1/data/shorten', async (req, res) => {
     // Insert into the database
     await client.query('INSERT INTO urls (id, short_url, long_url) VALUES ($1, $2, $3)', [uniqueId, shortUrl, longUrl]);
 
-    client.release();
-
     res.json({ shortUrl: `${url}/${shortUrl}`, type: 'new' });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
+    console.error('Database query error', err);
+    res.status(500).send('Database error');
+  } finally {
+    if (client) {
+      client.release();
+    }
   }
 });
-
-
 
 // Endpoint to redirect to the original URL
 app.get('/:shortUrl', async (req, res) => {
   const { shortUrl } = req.params;
 
+  let client;
   try {
-    const client = await pool.connect();
+    client = await pool.connect();
 
     // Fetch the long URL from the database
     const result = await client.query('SELECT long_url FROM urls WHERE short_url = $1', [shortUrl]);
     if (result.rows.length > 0) {
       const { long_url } = result.rows[0];
-      client.release();
       return res.redirect(301, long_url);
     }
 
-    client.release();
     res.status(404).send('Short URL not found');
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
+    console.error('Database query error', err);
+    res.status(500).send('Database error');
+  } finally {
+    if (client) {
+      client.release();
+    }
   }
 });
-
-
 
 app.listen(port, () => {
   console.log(`minimaLINK listening at ${url}`);

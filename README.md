@@ -16,7 +16,7 @@ This project is built using Node.js for the backend and PostgreSQL for the datab
 
 ## Demo
 
-You can check out the live demo [here](https://minimalink.netlify.app) (replace with actual live URL if deployed).
+You can check out the live demo [here](https://minimalink.netlify.app) https://minimalink.netlify.app.
 
 ## Upcoming Features:
 

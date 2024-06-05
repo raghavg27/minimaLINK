@@ -9,7 +9,7 @@ document.getElementById('shortenButton').addEventListener('click', async () => {
   }
 
   // Making API Call to shorten URL
-  const response = await fetch(`${API_URL}:${PORT}/api/v1/data/shorten`, {
+  const response = await fetch(`${API_URL}/api/v1/data/shorten`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

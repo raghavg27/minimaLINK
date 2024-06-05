@@ -12,7 +12,8 @@ app.use(express.json());
 app.use(cors());  // Enable CORS for all routes
 
 //url 
-const url = process.env.API_URL + ":" + process.env.PORT
+// const url = process.env.API_URL + ":" + process.env.PORT
+const url = process.env.API_URL
 
 // PostgreSQL client setup
 const pool = new Pool({

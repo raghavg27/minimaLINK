@@ -21,7 +21,7 @@ function UrlResult({ shortUrl }) {
     <Box mt={5} display="flex" justifyContent="center">
       <Card sx={{ width: '100%', maxWidth: 600, backgroundColor: '#1e1e1e', boxShadow: 3 }}>
         <CardContent>
-          <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
+          <Typography variant="h6" sx={{ mb: 2, textAlign: 'center', flexDirection: 'column', justifyContent: 'center'}}>
             Shortened URL:
           </Typography>
           <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -37,7 +37,7 @@ function UrlResult({ shortUrl }) {
         </CardContent>
       </Card>
       <Snackbar open={open} autoHideDuration={3000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
+        <Alert onClose={handleClose} severity="success" sx={{ width: '100%' flexDirection: 'column', justifyContent: 'center' }}>
           Copied to clipboard!
         </Alert>
       </Snackbar>

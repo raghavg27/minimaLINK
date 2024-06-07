@@ -37,7 +37,7 @@ function UrlResult({ shortUrl }) {
         </CardContent>
       </Card>
       <Snackbar open={open} autoHideDuration={3000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="success" sx={{ width: '100%' flexDirection: 'column', justifyContent: 'center' }}>
+        <Alert onClose={handleClose} severity="success" sx={{ width: '100%', flexDirection: 'column', justifyContent: 'center' }}>
           Copied to clipboard!
         </Alert>
       </Snackbar>

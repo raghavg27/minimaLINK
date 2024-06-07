@@ -30,7 +30,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Header />
-      <Container maxWidth="sm" sx={{ minHeight: 'calc(100vh - 64px - 56px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <Container maxWidth="sm" sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <Box textAlign="center" mt={10}>
           <Paper elevation={3} sx={{ p: 5, backgroundColor: '#1e1e1e', color: '#fff' }}>
             <Typography variant="h4" gutterBottom>

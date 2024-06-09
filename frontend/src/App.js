@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ThemeProvider, CssBaseline, Container, Typography, Box, Paper } from '@mui/material';
+import { CircularProgress, ThemeProvider, CssBaseline, Container, Typography, Box, Paper } from '@mui/material';
 import theme from './theme';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -8,8 +8,12 @@ import UrlResult from './components/UrlResult';
 
 function App() {
   const [shortUrl, setShortUrl] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
 
   const handleShortenUrl = async (longUrl) => {
+    setIsLoading(true);  // Indicate that the loading has started
+
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/data/shorten`, {
         method: 'POST',
@@ -23,6 +27,8 @@ function App() {
       setShortUrl(data.shortUrl);
     } catch (error) {
       console.error('Error:', error);
+    } finally {
+    setIsLoading(false);  // Indicate that the loading has finished
     }
   };
 
@@ -41,8 +47,15 @@ function App() {
               Enter your long URL below to get started.
             </Typography>
           </Paper>
+
           <UrlForm onShortenUrl={handleShortenUrl} />
-          {shortUrl && <UrlResult shortUrl={shortUrl} />}
+          {isLoading && (
+            <Box display="flex" justifyContent="center" my={2}>
+              <CircularProgress />
+            </Box>
+          )}// Show the progress indicator when loading
+          
+          {!isLoading && shortUrl && <UrlResult shortUrl={shortUrl} />}
         </Box>
       </Container>
       <Footer />

@@ -3,6 +3,7 @@ import { Box, TextField, Button, Card, CardContent } from '@mui/material';
 
 function UrlForm({ onShortenUrl }) {
   const [longUrl, setLongUrl] = useState('');
+  const [isLoading, setIsLoading] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -10,7 +11,7 @@ function UrlForm({ onShortenUrl }) {
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} mt={5} display="flex" justifyContent="center">
+    <Box component="form" onSubmit={handleSubmit} disabled={isLoading} mt={5} display="flex" justifyContent="center">
       <Card sx={{ width: '100%', backgroundColor: '#1e1e1e', boxShadow: 3, flexDirection: 'column', justifyContent: 'center'}}>
         <CardContent>
           <TextField

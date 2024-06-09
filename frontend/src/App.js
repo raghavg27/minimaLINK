@@ -53,7 +53,7 @@ function App() {
             <Box display="flex" justifyContent="center" my={2}>
               <CircularProgress />
             </Box>
-          )}// Show the progress indicator when loading
+          )}
           
           {!isLoading && shortUrl && <UrlResult shortUrl={shortUrl} />}
         </Box>

@@ -1,7 +1,4 @@
-// server.js
-
 const express = require('express');
-const validUrl = require('valid-url');
 const { Pool } = require('pg');
 const cors = require('cors');
 require('dotenv').config();
@@ -12,9 +9,7 @@ const port = process.env.PORT || 3001;
 app.use(express.json());
 app.use(cors());  // Enable CORS for all routes
 
-//url 
-// const url = process.env.API_URL + ":" + process.env.PORT
-const url = process.env.API_URL.includes('http') ? process.env.API_URL : `http://${process.env.API_URL}`;
+const url = process.env.API_URL;
 
 // PostgreSQL client setup
 const pool = new Pool({
@@ -49,6 +44,19 @@ function generateUniqueId() {
   return currentTime * 10000 + randomNum;
 }
 
+// Helper function to format dates
+function formatDate(date) {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  }).format(new Date(date));
+}
+
 // Endpoint to shorten URL
 app.post('/api/v1/data/shorten', async (req, res) => {
   let { longUrl } = req.body;
@@ -57,12 +65,8 @@ app.post('/api/v1/data/shorten', async (req, res) => {
     return res.status(400).send('longUrl is required');
   }
 
-  // Prepend protocol if missing
-  if (!validUrl.isUri(longUrl)) {
+  if (!longUrl.startsWith('http://') && !longUrl.startsWith('https://')) {
     longUrl = 'http://' + longUrl;
-    if (!validUrl.isUri(longUrl)) {
-      return res.status(400).send('A valid longUrl is required');
-    }
   }
 
   let client;
@@ -80,8 +84,8 @@ app.post('/api/v1/data/shorten', async (req, res) => {
     const uniqueId = generateUniqueId();
     const shortUrl = toBase62(uniqueId);
 
-    // Insert into the database
-    await client.query('INSERT INTO urls (id, short_url, long_url) VALUES ($1, $2, $3)', [uniqueId, shortUrl, longUrl]);
+    // Insert into the database with the current timestamp
+    await client.query('INSERT INTO urls (id, short_url, long_url, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)', [uniqueId, shortUrl, longUrl]);
 
     res.json({ shortUrl: `${url}/${shortUrl}`, type: 'new' });
 
@@ -132,7 +136,6 @@ app.get('/:shortUrl', async (req, res) => {
   }
 });
 
-
 // Endpoint to fetch the last 5 shortened URLs
 app.get('/api/v1/data/last5', async (req, res) => {
   let client;
@@ -151,7 +154,7 @@ app.get('/api/v1/data/last5', async (req, res) => {
     const links = result.rows.map(row => ({
       shortLink: `${url}/${row.short_url}`,
       originalLink: row.long_url,
-      dateCreated: row.created_at
+      dateCreated: formatDate(row.created_at)
     }));
 
     res.json(links);

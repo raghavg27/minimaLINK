@@ -1,6 +1,7 @@
 // server.js
 
 const express = require('express');
+const validUrl = require('valid-url');
 const { Pool } = require('pg');
 const cors = require('cors');
 require('dotenv').config();
@@ -50,10 +51,18 @@ function generateUniqueId() {
 
 // Endpoint to shorten URL
 app.post('/api/v1/data/shorten', async (req, res) => {
-  const { longUrl } = req.body;
+  let { longUrl } = req.body;
 
   if (!longUrl) {
-    return res.status(400).send('A valid longUrl is required');
+    return res.status(400).send('longUrl is required');
+  }
+
+  // Prepend protocol if missing
+  if (!validUrl.isUri(longUrl)) {
+    longUrl = 'http://' + longUrl;
+    if (!validUrl.isUri(longUrl)) {
+      return res.status(400).send('A valid longUrl is required');
+    }
   }
 
   let client;
@@ -100,8 +109,14 @@ app.get('/:shortUrl', async (req, res) => {
     console.log(`Database query result: ${JSON.stringify(result.rows)}`);
 
     if (result.rows.length > 0) {
-      const { long_url } = result.rows[0];
+      let { long_url } = result.rows[0];
       console.log(`Redirecting to long URL: ${long_url}`);
+
+      // Prepend protocol if missing
+      if (!long_url.startsWith('http://') && !long_url.startsWith('https://')) {
+        long_url = 'http://' + long_url;
+      }
+
       return res.redirect(301, long_url);
     }
 

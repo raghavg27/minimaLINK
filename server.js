@@ -147,7 +147,7 @@ app.get('/api/v1/data/last5', async (req, res) => {
 
     // Fetch the last 5 shortened URLs
     const result = await client.query(`
-      SELECT short_url, long_url, created_at 
+      SELECT short_url, long_url, created_at, clicks 
       FROM urls 
       ORDER BY created_at DESC 
       LIMIT 5

@@ -13,7 +13,7 @@ app.use(cors());  // Enable CORS for all routes
 
 //url 
 // const url = process.env.API_URL + ":" + process.env.PORT
-const url = process.env.API_URL
+const url = process.env.API_URL.includes('http') ? process.env.API_URL : `http://${process.env.API_URL}`;
 
 // PostgreSQL client setup
 const pool = new Pool({
@@ -32,6 +32,7 @@ const base62chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVW
 
 // Convert a number to base62
 function toBase62(num) {
+  if (num === 0) return base62chars[0];
   let base62 = '';
   while (num > 0) {
     base62 = base62chars[num % 62] + base62;
@@ -52,7 +53,7 @@ app.post('/api/v1/data/shorten', async (req, res) => {
   const { longUrl } = req.body;
 
   if (!longUrl) {
-    return res.status(400).send('longUrl is required');
+    return res.status(400).send('A valid longUrl is required');
   }
 
   let client;
@@ -88,6 +89,7 @@ app.post('/api/v1/data/shorten', async (req, res) => {
 // Endpoint to redirect to the original URL
 app.get('/:shortUrl', async (req, res) => {
   const { shortUrl } = req.params;
+  console.log(`Received request to redirect short URL: ${shortUrl}`);
 
   let client;
   try {
@@ -95,11 +97,15 @@ app.get('/:shortUrl', async (req, res) => {
 
     // Fetch the long URL from the database
     const result = await client.query('SELECT long_url FROM urls WHERE short_url = $1', [shortUrl]);
+    console.log(`Database query result: ${JSON.stringify(result.rows)}`);
+
     if (result.rows.length > 0) {
       const { long_url } = result.rows[0];
+      console.log(`Redirecting to long URL: ${long_url}`);
       return res.redirect(301, long_url);
     }
 
+    console.log('Short URL not found');
     res.status(404).send('Short URL not found');
   } catch (err) {
     console.error('Database query error', err);

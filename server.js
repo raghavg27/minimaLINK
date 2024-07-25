@@ -85,7 +85,7 @@ app.post('/api/v1/data/shorten', async (req, res) => {
     const shortUrl = toBase62(uniqueId);
 
     // Insert into the database with the current timestamp
-    await client.query('INSERT INTO urls (id, short_url, long_url, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)', [uniqueId, shortUrl, longUrl]);
+    await client.query('INSERT INTO urls (id, short_url, long_url, created_at, clicks) VALUES ($1, $2, $3, CURRENT_TIMESTAMP, 0)', [uniqueId, shortUrl, longUrl]);
 
     res.json({ shortUrl: `${url}/${shortUrl}`, type: 'new' });
 
@@ -109,19 +109,22 @@ app.get('/:shortUrl', async (req, res) => {
     client = await pool.connect();
 
     // Fetch the long URL from the database
-    const result = await client.query('SELECT long_url FROM urls WHERE short_url = $1', [shortUrl]);
+    const result = await client.query('SELECT long_url, clicks FROM urls WHERE short_url = $1', [shortUrl]);
     console.log(`Database query result: ${JSON.stringify(result.rows)}`);
 
     if (result.rows.length > 0) {
-      let { long_url } = result.rows[0];
+      let { long_url, clicks } = result.rows[0];
       console.log(`Redirecting to long URL: ${long_url}`);
+
+      // Increment the click count
+      await client.query('UPDATE urls SET clicks = $1 WHERE short_url = $2', [clicks + 1, shortUrl]);
 
       // Prepend protocol if missing
       if (!long_url.startsWith('http://') && !long_url.startsWith('https://')) {
         long_url = 'http://' + long_url;
       }
 
-      return res.redirect(301, long_url);
+      return res.redirect(302, long_url);
     }
 
     console.log('Short URL not found');
@@ -158,6 +161,32 @@ app.get('/api/v1/data/last5', async (req, res) => {
     }));
 
     res.json(links);
+  } catch (err) {
+    console.error('Database query error', err);
+    res.status(500).send('Database error');
+  } finally {
+    if (client) {
+      client.release();
+    }
+  }
+});
+
+// Endpoint to delete an entry based on short link
+app.delete('/api/v1/data/delete/:shortUrl', async (req, res) => {
+  const { shortUrl } = req.params;
+
+  let client;
+  try {
+    client = await pool.connect();
+
+    // Delete the entry from the database
+    const result = await client.query('DELETE FROM urls WHERE short_url = $1 RETURNING *', [shortUrl]);
+
+    if (result.rowCount > 0) {
+      res.status(200).send(`Entry with short URL ${shortUrl} deleted successfully.`);
+    } else {
+      res.status(404).send('Short URL not found');
+    }
   } catch (err) {
     console.error('Database query error', err);
     res.status(500).send('Database error');

@@ -132,6 +132,39 @@ app.get('/:shortUrl', async (req, res) => {
   }
 });
 
+
+// Endpoint to fetch the last 5 shortened URLs
+app.get('/api/v1/data/last5', async (req, res) => {
+  let client;
+  try {
+    client = await pool.connect();
+
+    // Fetch the last 5 shortened URLs
+    const result = await client.query(`
+      SELECT short_url, long_url, created_at 
+      FROM urls 
+      ORDER BY created_at DESC 
+      LIMIT 5
+    `);
+
+    // Format the result
+    const links = result.rows.map(row => ({
+      shortLink: `${url}/${row.short_url}`,
+      originalLink: row.long_url,
+      dateCreated: row.created_at
+    }));
+
+    res.json(links);
+  } catch (err) {
+    console.error('Database query error', err);
+    res.status(500).send('Database error');
+  } finally {
+    if (client) {
+      client.release();
+    }
+  }
+});
+
 app.listen(port, () => {
   console.log(`minimaLINK listening at ${url}`);
 });

@@ -7,7 +7,7 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3001;
-const secret = process.env.JWT_SECRET || 'your_jwt_secret_key';
+const secret = process.env.JWT_SECRET;
 
 const url = process.env.API_URL || `http://localhost:${port}`;
 
@@ -79,7 +79,7 @@ app.post('/api/login', async (req, res) => {
 
 // Middleware to verify JWT
 const authenticateJWT = (req, res, next) => {
-  const token = req.headers.authorization;
+  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
   if (!token) {
     return res.status(401).send('Access token missing');
   }

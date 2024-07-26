@@ -1,8 +1,6 @@
-const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
-const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
@@ -10,7 +8,7 @@ const port = process.env.PORT || 3001;
 const secret = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
 app.use(express.json());
-app.use(cors());
+app.use(cors());  // Enable CORS for all routes
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -34,6 +32,7 @@ function formatDate(date) {
   };
   const formattedDate = new Intl.DateTimeFormat('en-US', options).format(new Date(date));
   
+  // Extract the month and day
   const [monthDay, time] = formattedDate.split(", ");
   return `${monthDay}, ${time} Hrs`;
 }

@@ -220,7 +220,7 @@ app.get('/api/v1/data/last5', authenticateJWT, async (req, res) => {
 
     // Fetch the last 5 shortened URLs for the authenticated user
     const result = await client.query(`
-      SELECT short_url, long_url, created_at, id, clicks 
+      SELECT short_url, long_url, created_at, clicks 
       FROM urls 
       WHERE user_id = $1 
       ORDER BY created_at DESC 
@@ -232,7 +232,7 @@ app.get('/api/v1/data/last5', authenticateJWT, async (req, res) => {
       shortLink: `${url}/${row.short_url}`,
       originalLink: row.long_url,
       dateCreated: formatDate(row.created_at),
-      shortLinkId: row.id,
+      shortLinkId: row.short_url,
       clicks: row.clicks
     }));
 

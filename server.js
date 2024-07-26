@@ -163,6 +163,53 @@ app.post('/api/v1/data/shorten', authenticateJWT, async (req, res) => {
   }
 });
 
+// Endpoint to redirect to the original URL
+app.get('/:shortUrl', async (req, res) => {
+  const { shortUrl } = req.params;
+  console.log(`Received request to redirect short URL: ${shortUrl}`);
+
+  let client;
+  try {
+    client = await pool.connect();
+
+    // Fetch the long URL and click count from the database
+    const result = await client.query('SELECT long_url, clicks FROM urls WHERE short_url = $1', [shortUrl]);
+    console.log(`Database query result: ${JSON.stringify(result.rows)}`);
+
+    if (result.rows.length > 0) {
+      let { long_url, clicks } = result.rows[0];
+      console.log(`Redirecting to long URL: ${long_url}`);
+
+      // Increment the click count
+      await client.query('UPDATE urls SET clicks = $1 WHERE short_url = $2', [clicks + 1, shortUrl]);
+
+      // Prepend protocol if missing
+      if (!long_url.startsWith('http://') && !long_url.startsWith('https://')) {
+        long_url = 'http://' + long_url;
+      }
+
+      // Ensure the URL is valid before redirecting
+      try {
+        new URL(long_url); // Validate URL format
+        return res.redirect(302, long_url);
+      } catch (e) {
+        console.error('Invalid URL format', e);
+        return res.status(400).send('Invalid URL format');
+      }
+    }
+
+    console.log('Short URL not found');
+    res.status(404).send('Short URL not found');
+  } catch (err) {
+    console.error('Database query error', err);
+    res.status(500).send('Database error');
+  } finally {
+    if (client) {
+      client.release();
+    }
+  }
+});
+
 // Endpoint to fetch the last 5 shortened URLs (guest users and authenticated users)
 app.get('/api/v1/data/last5', authenticateJWT, async (req, res) => {
   const userId = req.user.userId;
@@ -173,7 +220,7 @@ app.get('/api/v1/data/last5', authenticateJWT, async (req, res) => {
 
     // Fetch the last 5 shortened URLs for the authenticated user
     const result = await client.query(`
-      SELECT short_url, long_url, created_at 
+      SELECT short_url, long_url, created_at, id, clicks 
       FROM urls 
       WHERE user_id = $1 
       ORDER BY created_at DESC 

@@ -50,7 +50,7 @@ function generateUniqueId() {
 
 
 // Helper function to format dates
-ffunction formatDate(dateString) {
+function formatDate(dateString) {
   const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"

@@ -25,6 +25,30 @@ const pool = new Pool({
   }
 });
 
+
+// Base62 characters
+const base62chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+// Convert a number to base62
+function toBase62(num) {
+  if (num === 0) return base62chars[0];
+  let base62 = '';
+  while (num > 0) {
+    base62 = base62chars[num % 62] + base62;
+    num = Math.floor(num / 62);
+  }
+  return base62;
+}
+
+// Generate a unique ID
+function generateUniqueId() {
+  const currentTime = Date.now();
+  const randomNum = Math.floor(Math.random() * 10000);
+  return currentTime * 10000 + randomNum;
+}
+
+
+
 // Helper function to format dates
 function formatDate(date) {
   const options = {

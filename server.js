@@ -9,6 +9,8 @@ const app = express();
 const port = process.env.PORT || 3001;
 const secret = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
+const url = process.env.API_URL || `http://localhost:${port}`;
+
 app.use(express.json());
 app.use(cors());  // Enable CORS for all routes
 

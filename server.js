@@ -184,7 +184,9 @@ app.get('/api/v1/data/last5', authenticateJWT, async (req, res) => {
     const links = result.rows.map(row => ({
       shortLink: `${url}/${row.short_url}`,
       originalLink: row.long_url,
-      dateCreated: formatDate(row.created_at)
+      dateCreated: formatDate(row.created_at),
+      shortLinkId: row.id,
+      clicks: row.clicks
     }));
 
     res.json(links);

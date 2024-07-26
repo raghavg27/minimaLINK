@@ -50,19 +50,20 @@ function generateUniqueId() {
 
 
 // Helper function to format dates
-function formatDate(date) {
-  const options = {
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false, // Use 24-hour format
-  };
-  const formattedDate = new Intl.DateTimeFormat('en-US', options).format(new Date(date));
+ffunction formatDate(dateString) {
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const date = new Date(dateString);
   
-  // Extract the month and day
-  const [monthDay, time] = formattedDate.split(", ");
-  return `${monthDay}, ${time} Hrs`;
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = months[date.getMonth()];
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  
+  return `${day} ${month}, ${hours}:${minutes}`;
 }
 
 // User registration

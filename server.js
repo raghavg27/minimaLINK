@@ -69,6 +69,12 @@ function formatDate(dateString) {
 // User registration
 app.post('/api/register', async (req, res) => {
   const { email, password } = req.body;
+  
+  // Check for empty email or password
+  if (!email || !password) {
+    return res.status(400).send('Email and password are required');
+  }
+
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const result = await pool.query('INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id', [email, hashedPassword]);
@@ -84,6 +90,12 @@ app.post('/api/register', async (req, res) => {
 // User login
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
+  
+  // Check for empty email or password
+  if (!email || !password) {
+    return res.status(400).send('Email and password are required');
+  }
+
   try {
     const result = await pool.query('SELECT id, password FROM users WHERE email = $1', [email]);
     if (result.rows.length === 0) {

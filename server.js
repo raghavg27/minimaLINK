@@ -74,7 +74,7 @@ app.post('/api/register', async (req, res) => {
     const result = await pool.query('INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id', [email, hashedPassword]);
     const userId = result.rows[0].id;
     const token = jwt.sign({ userId, email }, secret, { expiresIn: '1h' });
-    res.json({ token });
+    res.json({ token, username: `${email}` });
   } catch (err) {
     console.error('Registration error', err);
     res.status(500).send('Registration error');
@@ -95,7 +95,7 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).send('Invalid credentials');
     }
     const token = jwt.sign({ userId: id, email }, secret, { expiresIn: '1h' });
-    res.json({ token });
+    res.json({ token, username: `${email}` });
   } catch (err) {
     console.error('Login error', err);
     res.status(500).send('Login error');

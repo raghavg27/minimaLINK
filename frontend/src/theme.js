@@ -1,36 +1,27 @@
+// src/theme.js
 import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
   palette: {
-    mode: 'dark',
     primary: {
-      main: '#90caf9',
+      main: '#EB568E', // Brand-Primary-Pink
     },
     secondary: {
-      main: '#f48fb1',
+      main: '#144EE3', // Brand-Primary-Blue
     },
     background: {
-      default: '#121212',
-      paper: '#1e1e1e',
+      default: '#0B101B', // Black
+      paper: '#181E29', // Grey
     },
     text: {
-      primary: '#ffffff',
-      secondary: '#b0bec5',
+      primary: '#C9CED6', // Lite
+      textSecondary: '#C9CED6',
     },
   },
   typography: {
-    fontFamily: 'Roboto, Arial, sans-serif',
-    h4: {
-      fontSize: '2.5rem', // Increased h4 size
-    },
-    h6: {
-      fontSize: '1.25rem', // Increased h6 size
-    },
-    body1: {
-      fontSize: '1.125rem', // Increased body1 size
-    },
+    fontFamily: 'SP Pro Display, Arial',
   },
-  spacing: 8, // Default spacing is already 8px, adjust if needed
+  spacing: 8, // default spacing unit
 });
 
 export default theme;

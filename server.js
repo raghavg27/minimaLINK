@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
-const cors = require('cors');  // Add this line
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
@@ -10,6 +10,7 @@ const port = process.env.PORT || 3001;
 const secret = process.env.JWT_SECRET;
 
 const url = process.env.API_URL || `http://localhost:${port}`;
+const schema = 'minimalink';  // Schema name stored in a configuration variable
 
 app.use(express.json());
 app.use(cors());  // Enable CORS for all routes
@@ -24,7 +25,6 @@ const pool = new Pool({
     rejectUnauthorized: false
   }
 });
-
 
 // Base62 characters
 const base62chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -46,8 +46,6 @@ function generateUniqueId() {
   const randomNum = Math.floor(Math.random() * 10000);
   return currentTime * 10000 + randomNum;
 }
-
-
 
 // Helper function to format dates
 function formatDate(dateString) {
@@ -77,7 +75,7 @@ app.post('/api/register', async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const result = await pool.query('INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id', [email, hashedPassword]);
+    const result = await pool.query(`INSERT INTO ${schema}.users (email, password) VALUES ($1, $2) RETURNING id`, [email, hashedPassword]);
     const userId = result.rows[0].id;
     const token = jwt.sign({ userId, email }, secret, { expiresIn: '1h' });
     res.json({ token, username: `${email}` });
@@ -97,7 +95,7 @@ app.post('/api/login', async (req, res) => {
   }
 
   try {
-    const result = await pool.query('SELECT id, password FROM users WHERE email = $1', [email]);
+    const result = await pool.query(`SELECT id, password FROM ${schema}.users WHERE email = $1`, [email]);
     if (result.rows.length === 0) {
       return res.status(401).send('Invalid credentials');
     }
@@ -143,7 +141,7 @@ app.post('/api/v1/data/shorten', authenticateJWT, async (req, res) => {
     client = await pool.connect();
 
     // Check if the user has exceeded the limit
-    const linkCountResult = await client.query('SELECT COUNT(*) FROM urls WHERE user_id = $1', [userId]);
+    const linkCountResult = await client.query(`SELECT COUNT(*) FROM ${schema}.urls WHERE user_id = $1`, [userId]);
     const linkCount = parseInt(linkCountResult.rows[0].count, 10);
 
     if (linkCount >= 3 && !req.user) {
@@ -151,7 +149,7 @@ app.post('/api/v1/data/shorten', authenticateJWT, async (req, res) => {
     }
 
     // Check if the long URL already exists
-    const result = await client.query('SELECT short_url FROM urls WHERE long_url = $1 AND user_id = $2', [longUrl, userId]);
+    const result = await client.query(`SELECT short_url FROM ${schema}.urls WHERE long_url = $1 AND user_id = $2`, [longUrl, userId]);
     if (result.rows.length > 0) {
       const { short_url } = result.rows[0];
       return res.json({ shortUrl: `${url}/${short_url}`, type: 'existing' });
@@ -162,7 +160,7 @@ app.post('/api/v1/data/shorten', authenticateJWT, async (req, res) => {
     const shortUrl = toBase62(uniqueId);
 
     // Insert into the database with the current timestamp
-    await client.query('INSERT INTO urls (id, short_url, long_url, created_at, clicks, user_id) VALUES ($1, $2, $3, CURRENT_TIMESTAMP, 0, $4)', [uniqueId, shortUrl, longUrl, userId]);
+    await client.query(`INSERT INTO ${schema}.urls (id, short_url, long_url, created_at, clicks, user_id) VALUES ($1, $2, $3, CURRENT_TIMESTAMP, 0, $4)`, [uniqueId, shortUrl, longUrl, userId]);
 
     res.json({ shortUrl: `${url}/${shortUrl}`, type: 'new' });
 
@@ -186,7 +184,7 @@ app.get('/:shortUrl', async (req, res) => {
     client = await pool.connect();
 
     // Fetch the long URL and click count from the database
-    const result = await client.query('SELECT long_url, clicks FROM urls WHERE short_url = $1', [shortUrl]);
+    const result = await client.query(`SELECT long_url, clicks FROM ${schema}.urls WHERE short_url = $1`, [shortUrl]);
     console.log(`Database query result: ${JSON.stringify(result.rows)}`);
 
     if (result.rows.length > 0) {
@@ -194,7 +192,7 @@ app.get('/:shortUrl', async (req, res) => {
       console.log(`Redirecting to long URL: ${long_url}`);
 
       // Increment the click count
-      await client.query('UPDATE urls SET clicks = $1 WHERE short_url = $2', [clicks + 1, shortUrl]);
+      await client.query(`UPDATE ${schema}.urls SET clicks = $1 WHERE short_url = $2`, [clicks + 1, shortUrl]);
 
       // Prepend protocol if missing
       if (!long_url.startsWith('http://') && !long_url.startsWith('https://')) {
@@ -234,7 +232,7 @@ app.get('/api/v1/data/last5', authenticateJWT, async (req, res) => {
     // Fetch the last 5 shortened URLs for the authenticated user
     const result = await client.query(`
       SELECT short_url, long_url, created_at, clicks 
-      FROM urls 
+      FROM ${schema}.urls 
       WHERE user_id = $1 
       ORDER BY created_at DESC 
       LIMIT 5
@@ -270,7 +268,7 @@ app.delete('/api/v1/data/delete/:shortUrl', authenticateJWT, async (req, res) =>
     client = await pool.connect();
 
     // Delete the entry from the database
-    const result = await client.query('DELETE FROM urls WHERE short_url = $1 AND user_id = $2 RETURNING *', [shortUrl, userId]);
+    const result = await client.query(`DELETE FROM ${schema}.urls WHERE short_url = $1 AND user_id = $2 RETURNING *`, [shortUrl, userId]);
 
     if (result.rowCount > 0) {
       res.status(200).send(`Entry with short URL ${shortUrl} deleted successfully.`);

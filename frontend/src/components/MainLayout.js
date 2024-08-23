@@ -21,26 +21,32 @@ function MainLayout() {
   const [last5Links, setLast5Links] = useState([]);
 
   const handleShortenUrl = async (longUrl) => {
-    setIsLoading(true);  // Indicate that the loading has started
+  setIsLoading(true);  // Indicate that the loading has started
 
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/data/shorten`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': authToken ? `Bearer ${authToken}` : '', // Include auth token if available
-        },
-        body: JSON.stringify({ longUrl }),
-      });
+  try {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/data/shorten`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authToken ? `Bearer ${authToken}` : '', // Include auth token if available
+      },
+      body: JSON.stringify({ longUrl }),
+      mode: 'cors',  // Ensure CORS mode is set
+    });
 
-      const data = await response.json();
-      setShortUrl(data.shortUrl);
-    } catch (error) {
-      console.error('PROBLEM with the fetch:', error);
-    } finally {
-      setIsLoading(false);  // Indicate that the loading has finished
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  };
+
+    const data = await response.json();
+    setShortUrl(data.shortUrl);
+  } catch (error) {
+    console.error('PROBLEM with the fetch:', error);
+  } finally {
+    setIsLoading(false);  // Indicate that the loading has finished
+  }
+};
+
 
   const fetchLast5Links = async () => {
     try {
